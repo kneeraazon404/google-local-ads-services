@@ -4,10 +4,25 @@ This project demonstrates how to implement Google OAuth 2.0 authentication in a 
 
 ## Features
 
-- Google OAuth 2.0 authentication
-- User session management using Flask-Login
-- SQLite database for storing user data
-- User profile page that displays basic user information
+- OAuth2 Authentication: The app integrates with Google's OAuth2 to authenticate users, granting access to Google Ads data based on their Google account credentials.
+
+- Token Management: Stores access tokens, refresh tokens, and token expiry times in the database for each user, enabling API access on behalf of the user.
+
+- Automatic Token Refresh: Automatically refreshes the access token using the stored refresh token when it detects the access token has expired, ensuring uninterrupted API access.
+
+- Secure Token Storage: Utilizes Flask's environment variables and SQLAlchemy for secure storage and handling of sensitive OAuth tokens and user information.
+
+- User Registration: Automatically registers users in the database upon successful OAuth2 authentication, storing their unique Google ID, email, name, and profile picture URL.
+
+- User Authentication Flow: Manages the complete OAuth2 flow, from initiating the login process to handling the callback with the authorization code to retrieve tokens.
+
+- Google Ads API Access: Uses the access token to make authorized requests to the Google Ads API, fetching campaign data for the authenticated user.
+
+- Dynamic Content Rendering: Dynamically renders Google Ads data on the web page for each user, displaying their ads information retrieved from the Google Ads API.
+
+- User Session Management: Leverages Flask-Login for session management, enabling secure login sessions and easy access to the user's Google Ads data during their session.
+
+- Logout Functionality: Provides a logout route that securely logs out the user, clearing their session and redirecting them to the main page, ensuring a clean and secure end to the session.
 
 ## Requirements
 
