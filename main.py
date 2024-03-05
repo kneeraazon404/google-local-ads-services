@@ -47,7 +47,6 @@ login_manager = LoginManager(app)
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 
-# User model representing an authenticated user with tokens for Google API access
 class User(UserMixin, db.Model):
     id = db.Column(db.String, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -58,7 +57,6 @@ class User(UserMixin, db.Model):
     token_expiry = db.Column(db.DateTime, nullable=True)
 
     def save_tokens(self, access_token, refresh_token, token_expiry):
-        # Update user's OAuth tokens and expiry, then commit changes to the database
         self.access_token = access_token
         self.refresh_token = refresh_token
         self.token_expiry = token_expiry
@@ -66,13 +64,19 @@ class User(UserMixin, db.Model):
         logging.info(f"Tokens updated for user: {self.id}")
 
 
-# Flask-Login loader callback to reload user object from the user ID stored in the session
+# New GoogleAdsAccount model for storing multiple customer IDs
+class GoogleAdsAccount(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.String(100), nullable=False)
+    user_id = db.Column(db.String, db.ForeignKey("user.id"), nullable=False)
+    user = db.relationship("User", backref=db.backref("google_ads_accounts", lazy=True))
+
+
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(user_id)
+    return db.session.get(User, user_id)
 
 
-# Home route displays all users with access to Google Ads data
 @app.route("/")
 def index():
     logging.info("Accessing the index page")
@@ -80,8 +84,13 @@ def index():
     ads_data = []
 
     for user in users_with_access:
-        # Fetch Google Ads data for each user
-        user_ads = access_google_ads_api(user.id)
+        user_ads = []
+        customer_id = None
+        for google_ads_account in user.google_ads_accounts:
+            customer_id = google_ads_account.customer_id
+            print(f"Accessing Google Ads data for customer ID: {customer_id}")
+            user_ads.extend(access_google_ads_api(user.id, customer_id))
+
         ads_data.append(
             {
                 "user_id": user.id,
@@ -92,6 +101,20 @@ def index():
         )
 
     return render_template("index.html", ads_data=ads_data)
+
+
+@app.route("/ads-data/<user_id>")
+def ads_data(user_id):
+    logging.info(f"Accessing ads data for user: {user_id}")
+    user = db.session.get(User, user_id)
+    if not user:
+        return "User not found", 404
+
+    # Assuming you have a function to fetch or generate ads data for the user
+    ads_data = access_google_ads_api(user_id)
+
+    # You can render this data using a template or return it in another format
+    return render_template("ads_data.html", ads_data=ads_data, user=user)
 
 
 # Login route initiates OAuth2 flow with Google
@@ -136,7 +159,7 @@ def callback():
         users_email = userinfo.get("email")
         picture = userinfo.get("picture")
         users_name = userinfo.get("given_name")
-        user = User.query.get(unique_id)
+        user = db.session.query(User).filter_by(id=unique_id).first()
 
         if not user:
             user = User(
@@ -158,11 +181,37 @@ def callback():
 
         db.session.commit()
         login_user(user)
+        fetch_and_store_google_ads_customer_ids(user)
         logging.info(f"User logged in: {unique_id}")
         return redirect(url_for("index"))
     else:
         logging.error("User email not verified by Google")
         return "User email not available or not verified by Google.", 400
+
+
+def fetch_and_store_google_ads_customer_ids(user):
+    # Assuming you have a function to get access token
+    access_token = user.access_token
+    headers = {"Authorization": f"Bearer {access_token}"}
+    # This URL is hypothetical; refer to Google Ads API documentation for the actual endpoint
+    customer_ids_url = (
+        "https://googleads.googleapis.com/v8/customers:listAccessibleCustomers"
+    )
+    response = requests.get(customer_ids_url, headers=headers)
+    if response.status_code == 200:
+        customer_ids = response.json().get("resourceNames", [])
+        for customer_id in customer_ids:
+            # Extract the customer ID from the resourceName
+            # Assume the format is "customers/1234567890"
+            customer_id = customer_id.split("/")[1]
+            print(f"Customer ID: {customer_id}")
+            # Check if the GoogleAdsAccount already exists to avoid duplicates
+            if not GoogleAdsAccount.query.filter_by(
+                user_id=user.id, customer_id=customer_id
+            ).first():
+                new_account = GoogleAdsAccount(user_id=user.id, customer_id=customer_id)
+                db.session.add(new_account)
+        db.session.commit()
 
 
 # Logout route logs the user out
@@ -192,10 +241,9 @@ def refresh_access_token(refresh_token):
     return response.json() if response.status_code == 200 else None
 
 
-# Function to access Google Ads API with refreshed token
 def access_google_ads_api(user_id):
     logging.info(f"Accessing Google Ads API for user: {user_id}")
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         logging.error(f"User {user_id} not found.")
         return []
@@ -205,9 +253,9 @@ def access_google_ads_api(user_id):
         refresh_response = refresh_access_token(user.refresh_token)
         if refresh_response:
             user.save_tokens(
-                refresh_response["access_token"],
-                refresh_response.get("refresh_token", user.refresh_token),
-                datetime.datetime.utcnow()
+                access_token=refresh_response["access_token"],
+                refresh_token=refresh_response.get("refresh_token", user.refresh_token),
+                token_expiry=datetime.datetime.utcnow()
                 + datetime.timedelta(seconds=refresh_response["expires_in"]),
             )
             db.session.commit()
@@ -216,26 +264,35 @@ def access_google_ads_api(user_id):
             logging.error("Failed to refresh token for Google Ads API access")
             return []
 
-    # Example functionality placeholder for accessing Google Ads data
+    campaigns_data = []  # Initialize an empty list to hold data from all campaigns
     google_ads_api_version = "v8"
-    customer_id = "INSERT_CUSTOMER_ID_HERE"  # Placeholder for actual customer ID
-    google_ads_api_url = f"https://googleads.googleapis.com/{google_ads_api_version}/customers/{customer_id}/campaigns"
-    headers = {
-        "Authorization": f"Bearer {user.access_token}",
-        "developer-token": os.environ.get("GOOGLE_ADS_DEVELOPER_TOKEN"),
-        "login-customer-id": customer_id,
-    }
-    response = requests.get(google_ads_api_url, headers=headers)
 
-    if response.status_code == 200:
-        logging.info(f"Successfully retrieved campaigns for user: {user_id}")
-        campaigns_data = response.json().get("campaigns", [])
-        return campaigns_data
-    else:
-        logging.error(
-            f"Failed to retrieve campaigns for user {user_id}: {response.text}"
-        )
-        return []
+    # Ensure customer_id is used within the loop for fetching campaign data for each account
+    for google_ads_account in user.google_ads_accounts:
+        customer_id = google_ads_account.customer_id
+        print(f"Accessing Google Ads data for customer ID: {customer_id}")
+        google_ads_api_url = f"https://googleads.googleapis.com/{google_ads_api_version}/customers/{customer_id}/campaigns"
+        headers = {
+            "Authorization": f"Bearer {user.access_token}",
+            "developer-token": "aLH6YumobdqXUffWzF2A8w",
+            "login-customer-id": customer_id,
+        }
+        response = requests.get(google_ads_api_url, headers=headers)
+
+        if response.status_code == 200:
+            logging.info(
+                f"Successfully retrieved campaigns for customer ID: {customer_id}"
+            )
+            campaign_data = response.json().get("campaigns", [])
+            campaigns_data.extend(
+                campaign_data
+            )  # Aggregate campaigns from all accounts
+        else:
+            logging.error(
+                f"Failed to retrieve campaigns for customer ID {customer_id}: {response.text}"
+            )
+
+    return campaigns_data
 
 
 if __name__ == "__main__":

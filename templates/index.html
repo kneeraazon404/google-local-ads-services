@@ -29,27 +29,24 @@
       <table class="table table-striped mt-4">
         <thead>
           <tr>
-            <th>User ID</th>
             <th>Name</th>
             <th>Email</th>
-            <th>Ads</th>
+            <th>Ads data</th>
           </tr>
         </thead>
         <tbody>
           {% for user_data in ads_data %}
           <tr>
-            <td>{{ user_data.user_id }}</td>
             <td>{{ user_data.name }}</td>
             <td>{{ user_data.email }}</td>
             <td>
-              {% if user_data.ads == "No ads data available." %} {{
-              user_data.ads }} {% else %}
-              <ul>
-                {% for ad in user_data.ads %}
-                <li>{{ ad }}</li>
-                {% endfor %}
-              </ul>
-              {% endif %}
+              <!-- Replace this section with a button -->
+              <!-- Add this inside the loop where you list users -->
+              <a
+                href="{{ url_for('ads_data', user_id=user_data.user_id) }}"
+                class="btn btn-primary"
+                >View Ads Data</a
+              >
             </td>
           </tr>
           {% endfor %}
