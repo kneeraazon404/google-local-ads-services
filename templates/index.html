@@ -31,6 +31,7 @@
           <tr>
             <th>Name</th>
             <th>Email</th>
+            <th>Customer IDs</th>
             <th>Ads data</th>
           </tr>
         </thead>
@@ -39,14 +40,16 @@
           <tr>
             <td>{{ user_data.name }}</td>
             <td>{{ user_data.email }}</td>
+            <td>{{ user_data.customer_ids }}</td>
             <td>
-              <!-- Replace this section with a button -->
-              <!-- Add this inside the loop where you list users -->
-              <a
-                href="{{ url_for('ads_data', user_id=user_data.user_id) }}"
-                class="btn btn-primary"
-                >View Ads Data</a
-              >
+              {% if user_data.ads == "No ads data available." %} {{
+              user_data.ads }} {% else %}
+              <ul>
+                {% for ad in user_data.ads %}
+                <li>{{ ad }}</li>
+                {% endfor %}
+              </ul>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}

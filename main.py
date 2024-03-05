@@ -85,10 +85,15 @@ def index():
 
     for user in users_with_access:
         user_ads = []
-        customer_id = None
+        customer_ids = [account.customer_id for account in user.google_ads_accounts]
+        if not customer_ids:  # Check if the list is empty
+            customer_ids_display = "Not Available"
+        else:
+            customer_ids_display = ", ".join(customer_ids)
+
         for google_ads_account in user.google_ads_accounts:
             customer_id = google_ads_account.customer_id
-            print(f"Accessing Google Ads data for customer ID: {customer_id}")
+            logging.info(f"Accessing Google Ads data for customer ID: {customer_id}")
             user_ads.extend(access_google_ads_api(user.id, customer_id))
 
         ads_data.append(
@@ -96,6 +101,7 @@ def index():
                 "user_id": user.id,
                 "name": user.name,
                 "email": user.email,
+                "customer_ids": customer_ids_display,  # Include the customer IDs or "Not Available"
                 "ads": user_ads if user_ads else "No ads data available.",
             }
         )
