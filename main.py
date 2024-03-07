@@ -91,18 +91,12 @@ def index():
         else:
             customer_ids_display = ", ".join(customer_ids)
 
-        for google_ads_account in user.google_ads_accounts:
-            customer_id = google_ads_account.customer_id
-            logging.info(f"Accessing Google Ads data for customer ID: {customer_id}")
-            user_ads.extend(access_google_ads_api(user.id, customer_id))
-
         ads_data.append(
             {
                 "user_id": user.id,
                 "name": user.name,
                 "email": user.email,
                 "customer_ids": customer_ids_display,  # Include the customer IDs or "Not Available"
-                "ads": user_ads if user_ads else "No ads data available.",
             }
         )
 
@@ -110,6 +104,7 @@ def index():
 
 
 @app.route("/ads-data/<user_id>")
+@login_required
 def ads_data(user_id):
     logging.info(f"Accessing ads data for user: {user_id}")
     user = db.session.get(User, user_id)
@@ -272,9 +267,16 @@ def access_google_ads_api(user_id):
 
     campaigns_data = []  # Initialize an empty list to hold data from all campaigns
     google_ads_api_version = "v8"
+    logging.info(
+        f"Attempting to access Google Ads data for {len(user.google_ads_accounts)} accounts."
+    )
 
     # Ensure customer_id is used within the loop for fetching campaign data for each account
     for google_ads_account in user.google_ads_accounts:
+        logging.info(
+            f"Number of Google Ads accounts linked: {len(user.google_ads_accounts)}"
+        )
+
         customer_id = google_ads_account.customer_id
         print(f"Accessing Google Ads data for customer ID: {customer_id}")
         google_ads_api_url = f"https://googleads.googleapis.com/{google_ads_api_version}/customers/{customer_id}/campaigns"

@@ -42,14 +42,12 @@
             <td>{{ user_data.email }}</td>
             <td>{{ user_data.customer_ids }}</td>
             <td>
-              {% if user_data.ads == "No ads data available." %} {{
-              user_data.ads }} {% else %}
-              <ul>
-                {% for ad in user_data.ads %}
-                <li>{{ ad }}</li>
-                {% endfor %}
-              </ul>
-              {% endif %}
+              <!-- Add this inside the loop where you list users -->
+              <a
+                href="{{ url_for('ads_data', user_id=user_data.user_id) }}"
+                class="btn btn-primary"
+                >View Ads Data</a
+              >
             </td>
           </tr>
           {% endfor %}
