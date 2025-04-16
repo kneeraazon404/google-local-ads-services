@@ -1,93 +1,119 @@
-# Flask Google Login Example
+# Google Local Ads Services 🌟  
+### A Flask Application for Google OAuth 2.0 Authentication and Google Ads API Integration  
 
-This project demonstrates how to implement Google OAuth 2.0 authentication in a Flask application. It utilizes Flask-Login for session management and requests OAuthLib for OAuth 2 client setup. The example includes user authentication via Google, creating a simple user session, and handling login and logout functionalities.
+This project demonstrates how to implement Google OAuth 2.0 authentication in a Flask application. It uses Flask-Login for session management, securely handles OAuth tokens, and integrates with the Google Ads API to fetch and display campaign data dynamically.
 
-## Features
+---
 
-- OAuth2 Authentication: The app integrates with Google's OAuth2 to authenticate users, granting access to Google Ads data based on their Google account credentials.
+## ✨ Features  
 
-- Token Management: Stores access tokens, refresh tokens, and token expiry times in the database for each user, enabling API access on behalf of the user.
+- **OAuth2 Authentication**:  
+  Seamlessly integrates with Google's OAuth2 for secure user authentication.  
 
-- Automatic Token Refresh: Automatically refreshes the access token using the stored refresh token when it detects the access token has expired, ensuring uninterrupted API access.
+- **Google Ads API Access**:  
+  Fetches real-time Google Ads campaign data using authorized API requests.  
 
-- Secure Token Storage: Utilizes Flask's environment variables and SQLAlchemy for secure storage and handling of sensitive OAuth tokens and user information.
+- **Secure Token Management**:  
+  Stores access and refresh tokens securely in the database, with automatic token refresh to ensure uninterrupted API access.  
 
-- User Registration: Automatically registers users in the database upon successful OAuth2 authentication, storing their unique Google ID, email, name, and profile picture URL.
+- **Dynamic Data Rendering**:  
+  Displays personalized Google Ads campaign data dynamically for each authenticated user.  
 
-- User Authentication Flow: Manages the complete OAuth2 flow, from initiating the login process to handling the callback with the authorization code to retrieve tokens.
+- **User Session Management**:  
+  Leverages Flask-Login for secure and efficient session management.  
 
-- Google Ads API Access: Uses the access token to make authorized requests to the Google Ads API, fetching campaign data for the authenticated user.
+- **Logout Functionality**:  
+  Provides a secure logout option to end user sessions cleanly.  
 
-- Dynamic Content Rendering: Dynamically renders Google Ads data on the web page for each user, displaying their ads information retrieved from the Google Ads API.
+---
 
-- User Session Management: Leverages Flask-Login for session management, enabling secure login sessions and easy access to the user's Google Ads data during their session.
+## 🛠️ Requirements  
 
-- Logout Functionality: Provides a logout route that securely logs out the user, clearing their session and redirecting them to the main page, ensuring a clean and secure end to the session.
+- **Python 3.x**  
+- **Flask**  
+- **Flask-Login**  
+- **OAuthLib**  
+- **SQLite**  
+- **Requests**  
 
-## Requirements
+---
 
-- Python 3.x
-- Flask
-- Flask-Login
-- OAuthLib
-- SQLite3
-- Requests
+## 🔧 Installation  
 
-## Installation
+1. **Clone the Repository**:  
+   ```bash  
+   git clone https://github.com/kneeraazon404/google-local-ads-services.git  
+   cd google-local-ads-services  
+   ```  
 
-Clone the repository to your local machine:
+2. **Install Dependencies**:  
+   Install the required Python packages:  
+   ```bash  
+   pip install flask flask-login oauthlib requests  
+   ```  
 
-```bash
-git clone https://github.com/your-repository/flask-google-login-example.git
-cd flask-google-login-example
-```
+---
 
-Install the required Python packages:
+## ⚙️ Configuration  
 
-```bash
-pip install flask flask-login oauthlib requests
-```
+### 1. Google OAuth Credentials  
+- Create a project in the [Google Developer Console](https://console.developers.google.com/).  
+- Enable the Google Ads API and create credentials for a web application.  
+- Obtain the `client_id` and `client_secret` values.  
 
-## Configuration
+### 2. Application Secret Key  
+Generate a secret key for Flask to secure session cookies:  
+```python  
+import os  
+print(os.urandom(24))  
+```  
 
-Before running the application, you need to configure the Google OAuth credentials and the application secret key:
+### 3. Update Configuration  
+Add the following environment variables to your application:  
+- `GOOGLE_CLIENT_ID`  
+- `GOOGLE_CLIENT_SECRET`  
+- `app.secret_key`  
 
-1. **Google OAuth Credentials**: Create a project in the Google Developer Console, enable the Google+ API, and create credentials for a web application. You will get a `client_id` and `client_secret`.
+---
 
-2. **Application Secret Key**: The secret key is used by Flask to sign session cookies for protection against cookie data tampering. You can generate a secret key using Python:
+## 🚀 Running the Application  
 
-   ```python
-   import os
-   print(os.urandom(24))
-   ```
+Start the Flask application using the following command:  
+```bash  
+python app.py  
+```  
 
-Update the `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `app.secret_key` in your application with the values obtained.
+By default, the application runs on `https://localhost:5001`. Open this URL in your browser to test the Google login and Ads API integration.  
 
-## Running the Application
+---
 
-Run the Flask application with the following command:
+## 🎯 Usage  
 
-```bash
-python app.py
-```
+1. Visit the home page: `https://localhost:5001`.  
+2. Click the **Login** button to authenticate with Google.  
+3. After successful authentication, view your Google profile information along with your Ads campaign data.  
+4. Click the **Logout** button to securely end your session and return to the login page.  
 
-The application will start running on `https://localhost:5001`. Navigate to this URL in your web browser to test the Google login functionality.
+---
 
-## Usage
+## 📸 Screenshots  
 
-- Access the home page at `https://localhost:5001`.
-- Click on the "Login" button to authenticate with Google.
-- After successful authentication, you will be redirected back to the home page, now displaying your Google profile name, email, and profile picture.
-- Click on the "Logout" button to end the session and return to the login page.
+### Login Page  
+![Login Page Screenshot](https://via.placeholder.com/800x400?text=Login+Page)  
 
-## License
+### Campaign Data Page  
+![Campaign Data Screenshot](https://via.placeholder.com/800x400?text=Campaign+Data)  
 
-This project is licensed under the MIT License - see the LICENSE.md file for details.
+---
 
-## Acknowledgments
+## 📜 License  
 
-- Flask documentation
-- Flask-Login documentation
-- Google OAuth 2.0 documentation
+This project is licensed under the MIT License. See the [LICENSE.md](LICENSE.md) file for details.  
 
-Please note that this README assumes you have basic knowledge of Flask and OAuth 2.0 authentication flows. Adjust the instructions as necessary for your specific environment or deployment scenario.
+---
+
+## 🙏 Acknowledgments  
+
+- [Flask Documentation](https://flask.palletsprojects.com/)  
+- [Flask-Login Documentation](https://flask-login.readthedocs.io/)  
+- [Google OAuth 2.0 Documentation](https://developers.google.com/identity/protocols/oauth2)  
