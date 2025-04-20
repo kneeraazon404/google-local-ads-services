@@ -96,16 +96,6 @@ By default, the application runs on `https://localhost:5001`. Open this URL in y
 
 ---
 
-## 📸 Screenshots  
-
-### Login Page  
-![Login Page Screenshot](https://via.placeholder.com/800x400?text=Login+Page)  
-
-### Campaign Data Page  
-![Campaign Data Screenshot](https://via.placeholder.com/800x400?text=Campaign+Data)  
-
----
-
 ## 📜 License  
 
 This project is licensed under the MIT License. See the [LICENSE.md](LICENSE.md) file for details.  
